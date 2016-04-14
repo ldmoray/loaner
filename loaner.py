@@ -9,11 +9,12 @@ from sqlalchemy.ext.declarative import declarative_base
 # Class base
 Base = declarative_base()
 
-class Item (Base):
+
+class Item(Base):
     # Item table
     __tablename__ = 'item'
     # ID of the item. Required
-    id = Column (Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     # Name of the item. Required
     name = Column(String, nullable=False)
     # Location of the item. Required
@@ -25,11 +26,12 @@ class Item (Base):
     # Contact information of the person
     person_information = Column(String, nullable=False, default='')
 
-class Transaction (Base):
+
+class Transaction(Base):
     # Transaction table
     __tablename__ = 'transaction'
     # ID of the transaction
-    id = Column (Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     # Type of transaction. Required
     type = Column(String, nullable=False)
     # Name of the item in the transaction. Required.
@@ -50,19 +52,22 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-def print_items (items):
+
+def print_items(items):
     table = PrettyTable(['ID', 'Item Name', 'Item Location', 'Lent', 'Person Name', 'Person Info'])
     for item in items:
         table.add_row([item.id, item.name, item.location, item.lent, item.person_name, item.person_information])
     print table
 
-def print_transactions (transactions):
+
+def print_transactions(transactions):
     table = PrettyTable(['Type', 'Item Name', 'Item Location', 'Person Name', 'Person Info', 'Time Stamp'])
     for t in transactions:
         table.add_row([t.type, t.item_name, t.item_location, t.person_name, t.person_information, t.timestamp])
     print table
 
-def _find (args):
+
+def _find(args):
     query = session.query(Item)
     query = query.filter(Item.id.like('%' + args.id + '%'))
     query = query.filter(Item.name.like('%' + args.name + '%'))
@@ -70,14 +75,16 @@ def _find (args):
     items = query.all()
     print_items(items)
 
-def _add (args):
+
+def _add(args):
     item = Item(name=args.name, location=args.location)
     session.add(item)
     session.commit()
     print 'Item has been added'
     print_items([item])
 
-def _remove (args):
+
+def _remove(args):
     item = session.query(Item).get(args.id)
     if item is None:
         print 'Unable to find item with given id of ' + args.id
@@ -89,7 +96,8 @@ def _remove (args):
         print_items([item])
         session.commit()
 
-def _update (args):
+
+def _update(args):
     item = session.query(Item).get(args.id)
     if item is None:
         print 'Unable to find item with given id of ' + args.id
@@ -104,7 +112,8 @@ def _update (args):
         print_items([item])
         session.commit()
 
-def _lend (args):
+
+def _lend(args):
     item = session.query(Item).get(args.id)
     if item is None:
         print 'Unable to find item with given id of ' + args.id
@@ -120,7 +129,8 @@ def _lend (args):
         print_items([item])
         session.commit()
 
-def _return (args):
+
+def _return(args):
     item = session.query(Item).get(args.id)
     if item is None:
         print 'Unable to find item with given id of ' + args.id
@@ -136,7 +146,8 @@ def _return (args):
         print_items([item])
         session.commit()
 
-def _log (args):
+
+def _log(args):
     query = session.query(Transaction)
     query = query.filter(Transaction.type.like('%' + args.type + '%'))
     query = query.filter(Transaction.item_name.like('%' + args.item_name + '%'))
