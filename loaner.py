@@ -1,8 +1,6 @@
-import sqlite3
 import argparse
 from prettytable import PrettyTable
 import datetime
-import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
@@ -81,9 +79,9 @@ def _add (args):
 
 def _remove (args):
     item = session.query(Item).get(args.id)
-    if item == None:
+    if item is None:
         print 'Unable to find item with given id of ' + args.id
-    elif (item.lent == True):
+    elif item.lent:
         print 'You cannot remove an item that is currently lent out'
     else:
         session.delete(item)
@@ -93,9 +91,9 @@ def _remove (args):
 
 def _update (args):
     item = session.query(Item).get(args.id)
-    if item == None:
+    if item is None:
         print 'Unable to find item with given id of ' + args.id
-    elif (item.lent == True):
+    elif item.lent:
         print 'You cannot update an item that is currently lent out'
     else:
         name = item.name if args.name == '' else args.name
@@ -108,9 +106,9 @@ def _update (args):
 
 def _lend (args):
     item = session.query(Item).get(args.id)
-    if item == None:
+    if item is None:
         print 'Unable to find item with given id of ' + args.id
-    elif (item.lent == True):
+    elif item.lent:
         print 'You cannot lend an item that is currently lent out'
     else:
         item.lent = True
@@ -124,9 +122,9 @@ def _lend (args):
 
 def _return (args):
     item = session.query(Item).get(args.id)
-    if item == None:
+    if item is None:
         print 'Unable to find item with given id of ' + args.id
-    elif (item.lent == False):
+    elif not item.lent:
         print 'You cannot return an item that is not currently lent out'
     else:
         transaction = Transaction(type='Return', item_name=item.name, item_location=item.location, person_name=item.person_name, person_information=item.person_information)
