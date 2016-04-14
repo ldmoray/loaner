@@ -56,8 +56,8 @@ Item has been added
 +--------+-------------------+---------------+-------------------------+--------------------+---------------------+
 |  Type  |     Item Name     | Item Location |       Person Name       |    Person Info     |      Time Stamp     |
 +--------+-------------------+---------------+-------------------------+--------------------+---------------------+
-|  Lend  | Windows 10 x86_64 |   Tower 1/1   | Zachariah T. Dzielinski |   (240) 818-4962   | 2016-04-09 01:36:15 |
-| Return | Windows 10 x86_64 |   Tower 1/1   | Zachariah T. Dzielinski |   (240) 818-4962   | 2016-04-09 01:37:05 |
+|  Lend  | Windows 10 x86_64 |   Tower 1/1   | Zachariah T. Dzielinski |   (123) 123-1234   | 2016-04-09 01:36:15 |
+| Return | Windows 10 x86_64 |   Tower 1/1   | Zachariah T. Dzielinski |   (123) 123-1234   | 2016-04-09 01:37:05 |
 |  Lend  |       CentOS      |   Tower 1/3   |      Gordon Freeman     |    123-456-7890    | 2016-04-09 02:21:09 |
 |  Lend  |   A Bag of Chips  |   Tower 1/7   |        Bill Gates       | bill@microsoft.com | 2016-04-09 02:22:16 |
 |  Lend  |      Solaris      |   Tower 1/5   |     Hopefully Nobody    |    999-888-777     | 2016-04-09 02:22:48 |
