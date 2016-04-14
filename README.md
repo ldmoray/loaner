@@ -83,9 +83,8 @@ You can install them yourself, or you can install them using pip and my requirem
 
 ## Contributors
 
-[Zachariah T. Dzielinski](https://github.com/UnmercifulTurtle)
-
-[Lenny Morayniss](https://github.com/ldmoray)
+* [Zachariah T. Dzielinski](https://github.com/UnmercifulTurtle)
+* [Lenny Morayniss](https://github.com/ldmoray)
 
 ## License
 
