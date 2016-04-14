@@ -154,6 +154,8 @@ def _log(args):
     query = query.filter(Transaction.item_location.like('%' + args.item_location + '%'))
     query = query.filter(Transaction.person_name.like('%' + args.person_name + '%'))
     query = query.filter(Transaction.person_information.like('%' + args.person_info + '%'))
+    if args.recent:
+        query = query.order_by(Transaction.timestamp.desc())
     items = query.all()
     print_transactions(items)
 
@@ -206,6 +208,7 @@ log_parser.add_argument('--item-name', '-n', help='full or partial name of the i
 log_parser.add_argument('--item-location', '-l', help='full or partial location of the item', nargs='?', default='%')
 log_parser.add_argument('--person-name', '-p', help='full or partial name of the person', nargs='?', default='%')
 log_parser.add_argument('--person-info', '-i', help='full or partial information of the person', nargs='?', default='%')
+log_parser.add_argument('--recent', '-r', help='order by most recent timestamp', action="store_true", default=False)
 log_parser.set_defaults(action='log')
 
 
