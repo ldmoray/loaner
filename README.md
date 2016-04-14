@@ -4,8 +4,6 @@ This is a small project that handles item management, item lending, and transact
 
 ## Code Example
 
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
-
 ```
 # python loaner.py -h
 
@@ -78,6 +76,7 @@ I was tasked with finding or developing an item management and lending system wh
 
 This project requires these python dependencies
 
+* sqlalchemy
 * pysqlite
 * prettytable
 

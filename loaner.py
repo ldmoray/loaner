@@ -1,155 +1,152 @@
-# Sqlite library
 import sqlite3
-# Argument parsing library
 import argparse
-# Pretty table library
 from prettytable import PrettyTable
+import datetime
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.ext.declarative import declarative_base
 
-# Sqlite file name
-sqlite_file = 'data.sqlite'
-# SQL setup file name
-sql_file = 'setup.sql'
+# Class base
+Base = declarative_base()
 
-# Connection instance
-conn = sqlite3.connect(sqlite_file)
-# Connection cursor
-cur = conn.cursor()
+class Item (Base):
+    # Item table
+    __tablename__ = 'item'
+    # ID of the item. Required
+    id = Column (Integer, primary_key=True)
+    # Name of the item. Required
+    name = Column(String, nullable=False)
+    # Location of the item. Required
+    location = Column(String, nullable=False)
+    # Is the item lent? Default: False
+    lent = Column(Boolean, nullable=False, default=False)
+    # Name of the person
+    person_name = Column(String, nullable=False, default='')
+    # Contact information of the person
+    person_information = Column(String, nullable=False, default='')
 
-# SQL as array from file
-sqls = open(sql_file).read().split('--')
-# Loop through each query
-for sql in sqls:
-    # Execute each query
-    cur.execute(sql)
+class Transaction (Base):
+    # Transaction table
+    __tablename__ = 'transaction'
+    # ID of the transaction
+    id = Column (Integer, primary_key=True)
+    # Type of transaction. Required
+    type = Column(String, nullable=False)
+    # Name of the item in the transaction. Required.
+    item_name = Column(String, nullable=False)
+    # Location of the item in the transaction. Required.
+    item_location = Column(String, nullable=False)
+    # Name of the person in the transaction. Required.
+    person_name = Column(String, nullable=False)
+    # Contact information of the person in the transaction. Required.
+    person_information = Column(String, nullable=False)
+    # Time stamp of this transaction. Default: Current Timestamp
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
 
-# Print a list of items as a pretty table
+# Database connection setup
+engine = create_engine('sqlite:///data.db')
+Base.metadata.create_all(engine)
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
+
 def print_items (items):
     table = PrettyTable(['ID', 'Item Name', 'Item Location', 'Lent', 'Person Name', 'Person Info'])
     for item in items:
-        table.add_row(item)
+        table.add_row([item.id, item.name, item.location, item.lent, item.person_name, item.person_information])
     print table
 
-# Print a list of logs as a pretty table
-def print_logs (logs):
+def print_transactions (transactions):
     table = PrettyTable(['Type', 'Item Name', 'Item Location', 'Person Name', 'Person Info', 'Time Stamp'])
-    for log in logs:
-        table.add_row(log[1:])
+    for t in transactions:
+        table.add_row([t.type, t.item_name, t.item_location, t.person_name, t.person_information, t.timestamp])
     print table
 
-# Find item sub command
 def _find (args):
-    if args.id == '%':
-        qry = "SELECT * FROM item WHERE UPPER(item_name) LIKE UPPER('%{}%') AND UPPER(item_loc) LIKE UPPER('%{}%')"
-        items = cur.execute(qry.format(args.name, args.location))
-    else:
-        qry = "SELECT * FROM item WHERE item_id = '{}' AND UPPER(item_name) LIKE UPPER('%{}%') AND UPPER(item_loc) LIKE UPPER('%{}%')"
-        items = cur.execute(qry.format(args.id, args.name, args.location))
+    query = session.query(Item)
+    query = query.filter(Item.id.like('%' + args.id + '%'))
+    query = query.filter(Item.name.like('%' + args.name + '%'))
+    query = query.filter(Item.location.like('%' + args.location + '%'))
+    items = query.all()
     print_items(items)
 
-# Add item sub command
 def _add (args):
-    qry = "INSERT INTO item (item_name, item_loc) VALUES ('{}', '{}')"
-    cur.execute(qry.format(args.name, args.location))
-    conn.commit()
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(cur.lastrowid))
+    item = Item(name=args.name, location=args.location)
+    session.add(item)
+    session.commit()
     print 'Item has been added'
-    print_items(items)
-
-# Remove item sub command
-def _remove (args):
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    item = cur.fetchone()
-    if item == None:
-        print 'Item with id of ' + args.id + ' does not exist'
-        return
-    if item[3] == 'Yes':
-        print 'You cannot remove an item that is currently lent out'
-        return
-    qry = "DELETE FROM item WHERE item_id = '{}'"
-    cur.execute(qry.format(args.id))
-    conn.commit()
-    print 'Item has been removed'
     print_items([item])
 
-# Update item sub command
+def _remove (args):
+    item = session.query(Item).get(args.id)
+    if item == None:
+        print 'Unable to find item with given id of ' + args.id
+    elif (item.lent == True):
+        print 'You cannot remove an item that is currently lent out'
+    else:
+        session.delete(item)
+        print 'Item has been removed'
+        print_items([item])
+        session.commit()
+
 def _update (args):
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    cur.execute(qry.format(args.id))
-    item = cur.fetchone()
+    item = session.query(Item).get(args.id)
     if item == None:
-        print 'Item with id of ' + args.id + ' does not exist'
-        return
-    if item[3] == 'Yes':
+        print 'Unable to find item with given id of ' + args.id
+    elif (item.lent == True):
         print 'You cannot update an item that is currently lent out'
-        return
-    if args.name != '' and args.location != '':
-        qry = "UPDATE item SET item_name = '{}', item_loc = '{}' WHERE item_id = '{}'"
-        cur.execute(qry.format(args.name, args.location, args.id))
-        conn.commit()
-    elif args.name != '':
-        qry = "UPDATE item SET item_name = '{}' WHERE item_id = '{}'"
-        cur.execute(qry.format(args.name, args.id))
-        conn.commit()
-    elif args.location != '':
-        qry = "UPDATE item SET item_loc = '{}' WHERE item_id = '{}'"
-        cur.execute(qry.format(args.location, args.id))
-        conn.commit()
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    print 'Item has been updated'
-    print_items(items)
+    else:
+        name = item.name if args.name == '' else args.name
+        location = item.location if args.location == '' else args.location
+        item.name = name
+        item.location = location
+        print 'Item has been updated'
+        print_items([item])
+        session.commit()
 
-# Lend item sub command
 def _lend (args):
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    item = cur.fetchone()
+    item = session.query(Item).get(args.id)
     if item == None:
-        print 'Item with id of ' + args.id + ' does not exist'
-        return
-    if item[3] == 'Yes':
+        print 'Unable to find item with given id of ' + args.id
+    elif (item.lent == True):
         print 'You cannot lend an item that is currently lent out'
-        return
-    qry = "UPDATE item SET item_lent = '{}', person_name = '{}', person_info = '{}' WHERE item_id = '{}'"
-    cur.execute(qry.format('Yes', args.name, args.info, args.id))
-    conn.commit()
-    qry = "INSERT INTO log (type, item_name, item_loc, person_name, person_info) VALUES ('{}', '{}', '{}', '{}', '{}')"
-    cur.execute(qry.format('Lend', item[1], item[2], args.name, args.info))
-    conn.commit()
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    print 'Item has been lent'
-    print_items(items)
+    else:
+        item.lent = True
+        item.person_name = args.name
+        item.person_information = args.info
+        transaction = Transaction(type='Lend', item_name=item.name, item_location=item.location, person_name=args.name, person_information=args.info)
+        session.add(transaction)
+        print 'Item has been lent'
+        print_items([item])
+        session.commit()
 
-# Return item sub command
 def _return (args):
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    item = cur.fetchone()
+    item = session.query(Item).get(args.id)
     if item == None:
-        print 'Item with id of ' + args.id + ' does not exist'
-        return
-    if item[3] == 'No':
+        print 'Unable to find item with given id of ' + args.id
+    elif (item.lent == False):
         print 'You cannot return an item that is not currently lent out'
-        return
-    qry = "UPDATE item SET item_lent = '{}', person_name = '{}', person_info = '{}' WHERE item_id = '{}'"
-    cur.execute(qry.format('No', '', '', args.id))
-    conn.commit()
-    qry = "INSERT INTO log (type, item_name, item_loc, person_name, person_info) VALUES ('{}', '{}', '{}', '{}', '{}')"
-    cur.execute(qry.format('Return', item[1], item[2], item[4], item[5]))
-    conn.commit()
-    qry = "SELECT * FROM item WHERE item_id = '{}'"
-    items = cur.execute(qry.format(args.id))
-    print 'Item has been returned'
-    print_items(items)
+    else:
+        transaction = Transaction(type='Return', item_name=item.name, item_location=item.location, person_name=item.person_name, person_information=item.person_information)
+        item.lent = False
+        item.person_name = ''
+        item.person_information = ''
+        session.add(transaction)
+        print 'Item has been returned'
+        print_items([item])
+        session.commit()
 
-# Search logs sub command
 def _log (args):
-    qry = "SELECT * FROM log WHERE UPPER(type) LIKE UPPER('%{}%') AND UPPER(item_name) LIKE UPPER('%{}%') AND UPPER(item_loc) LIKE UPPER('%{}%') AND UPPER(person_name) LIKE UPPER('%{}%') AND UPPER(person_info) LIKE UPPER('%{}%')"
-    logs = cur.execute(qry.format(args.type, args.item_name, args.item_location, args.person_name, args.person_info))
-    print_logs(logs)
+    query = session.query(Transaction)
+    query = query.filter(Transaction.type.like('%' + args.type + '%'))
+    query = query.filter(Transaction.item_name.like('%' + args.item_name + '%'))
+    query = query.filter(Transaction.item_location.like('%' + args.item_location + '%'))
+    query = query.filter(Transaction.person_name.like('%' + args.person_name + '%'))
+    query = query.filter(Transaction.person_information.like('%' + args.person_info + '%'))
+    items = query.all()
+    print_transactions(items)
 
 # Main argument parser
 parser = argparse.ArgumentParser()
