@@ -74,7 +74,6 @@ I was tasked with finding or developing an item management and lending system wh
 This project requires these python dependencies
 
 * sqlalchemy
-* pysqlite
 * prettytable
 
 You can install them yourself, or you can install them using pip and my requirements.txt file
