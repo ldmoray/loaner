@@ -197,21 +197,23 @@ log_parser.add_argument('--person-name', '-p', help='full or partial name of the
 log_parser.add_argument('--person-info', '-i', help='full or partial information of the person', nargs='?', default='%')
 log_parser.set_defaults(action='log')
 
-# Parse the arguments
-args = parser.parse_args()
 
-# Call sub parser function
-if args.action == 'find':
-    _find(args)
-elif args.action == 'add':
-    _add(args)
-elif args.action == 'remove':
-    _remove(args)
-elif args.action == 'update':
-    _update(args)
-elif args.action == 'lend':
-    _lend(args)
-elif args.action == 'return':
-    _return(args)
-elif args.action == 'log':
-    _log(args)
+if __name__ == '__main__':
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Call sub parser function
+    if args.action == 'find':
+        _find(args)
+    elif args.action == 'add':
+        _add(args)
+    elif args.action == 'remove':
+        _remove(args)
+    elif args.action == 'update':
+        _update(args)
+    elif args.action == 'lend':
+        _lend(args)
+    elif args.action == 'return':
+        _return(args)
+    elif args.action == 'log':
+        _log(args)
