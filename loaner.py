@@ -203,17 +203,17 @@ log_parser.set_defaults(action='log')
 args = parser.parse_args()
 
 # Call sub parser function
-if args.action is 'find':
+if args.action == 'find':
     _find(args)
-elif args.action is 'add':
+elif args.action == 'add':
     _add(args)
-elif args.action is 'remove':
+elif args.action == 'remove':
     _remove(args)
-elif args.action is 'update':
+elif args.action == 'update':
     _update(args)
-elif args.action is 'lend':
+elif args.action == 'lend':
     _lend(args)
-elif args.action is 'return':
+elif args.action == 'return':
     _return(args)
-elif args.action is 'log':
+elif args.action == 'log':
     _log(args)
